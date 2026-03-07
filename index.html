@@ -9,8 +9,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         .card-vendedor { transition: all 0.3s ease; }
-        .input-meta { border-bottom: 2px solid #e2e8f0; }
-        .input-meta:focus { border-color: #3b82f6; }
+        input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
     </style>
 </head>
 <body class="bg-slate-100 min-h-screen font-sans pb-24">
@@ -49,32 +48,32 @@
                 <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100">
                     <p class="text-xs font-bold text-slate-500 uppercase mb-2">Volumen Global ($)</p>
                     <input type="number" id="real-vol-sup" onchange="saveSup()" class="text-2xl font-black text-blue-700 bg-transparent w-full outline-none" value="0">
-                    <p class="text-[10px] text-slate-400 font-bold mt-1">META: $85.000.000 (Premio: $180k)</p>
+                    <p class="text-[10px] text-slate-400 font-bold mt-1 uppercase">Meta: $85.000.000</p>
                     <div id="status-vol-sup" class="mt-2 text-[10px] font-black px-2 py-1 rounded-full inline-block"></div>
                 </div>
                 <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100">
                     <p class="text-xs font-bold text-slate-500 uppercase mb-2">Impactos Totales</p>
                     <input type="number" id="real-imp-sup" onchange="saveSup()" class="text-2xl font-black text-blue-700 bg-transparent w-full outline-none" value="0">
-                    <p class="text-[10px] text-slate-400 font-bold mt-1">META: 520 (95% para $120k)</p>
+                    <p class="text-[10px] text-slate-400 font-bold mt-1 uppercase">Meta: 520 (Min 95%)</p>
                     <div id="status-imp-sup" class="mt-2 text-[10px] font-black px-2 py-1 rounded-full inline-block"></div>
                 </div>
                 <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100">
                     <p class="text-xs font-bold text-slate-500 uppercase mb-2">Marca Máquinas ($)</p>
                     <input type="number" id="real-maq-sup" onchange="saveSup()" class="text-2xl font-black text-blue-700 bg-transparent w-full outline-none" value="0">
-                    <p class="text-[10px] text-slate-400 font-bold mt-1">META: $47.500.000 (Premio: $100k)</p>
+                    <p class="text-[10px] text-slate-400 font-bold mt-1 uppercase">Meta: $47.500.000</p>
                     <div id="status-maq-sup" class="mt-2 text-[10px] font-black px-2 py-1 rounded-full inline-block"></div>
                 </div>
             </div>
         </div>
 
-        <h3 class="text-slate-600 font-black uppercase tracking-widest text-sm mb-4 ml-2">Fuerza de Ventas</h3>
+        <h3 class="text-slate-600 font-black uppercase tracking-widest text-sm mb-4 ml-2 italic">Fuerza de Ventas - Cuotas y Avances</h3>
         <div id="contenedor-vendedores" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"></div>
 
         <div class="fixed bottom-24 right-6 flex flex-col space-y-4">
-            <button onclick="exportarExcel()" class="bg-white border-2 border-green-600 text-green-600 w-16 h-16 rounded-full shadow-2xl hover:scale-110 transition-transform flex items-center justify-center">
+            <button onclick="exportarExcel()" title="Exportar Excel" class="bg-white border-2 border-green-600 text-green-600 w-16 h-16 rounded-full shadow-2xl hover:scale-110 transition-transform flex items-center justify-center">
                 <i class="fas fa-file-excel text-2xl"></i>
             </button>
-            <button onclick="enviarWhatsApp()" class="bg-green-500 text-white w-16 h-16 rounded-full shadow-2xl hover:scale-110 transition-transform flex items-center justify-center">
+            <button onclick="enviarWhatsApp()" title="Enviar WhatsApp" class="bg-green-500 text-white w-16 h-16 rounded-full shadow-2xl hover:scale-110 transition-transform flex items-center justify-center">
                 <i class="fab fa-whatsapp text-3xl"></i>
             </button>
         </div>
@@ -89,12 +88,7 @@
     <script>
         const CONFIG = {
             whatsapp: "573117700431",
-            metasSup: {
-                volumen: 85000000,
-                impactos: 520,
-                maquinas: 47500000,
-                impMaq: 250
-            },
+            metasSup: { volumen: 85000000, impactos: 520, maquinas: 47500000, impMaq: 250 },
             vendedores: [
                 { nombre: "ARGENIS", vol: 20000000, imp: 50, maqVol: 13500000, maqImp: 25 },
                 { nombre: "ROY", vol: 18000000, imp: 60, maqVol: 8000000, maqImp: 25 },
@@ -115,8 +109,6 @@
             render();
             updateTime();
             setInterval(updateTime, 1000);
-            
-            // Cargar datos supervisor
             document.getElementById('real-vol-sup').value = data.sup.vol || 0;
             document.getElementById('real-imp-sup').value = data.sup.imp || 0;
             document.getElementById('real-maq-sup').value = data.sup.maq || 0;
@@ -129,55 +121,62 @@
 
             CONFIG.vendedores.forEach(v => {
                 const actual = data.vend[v.nombre] || { vol: 0, imp: 0, maqVol: 0, maqImp: 0 };
+                const pVol = ((actual.vol / v.vol) * 100).toFixed(1);
                 
-                // Cálculos de cumplimiento
                 const cumpleVol = actual.vol >= v.vol;
                 const cumpleImp = actual.imp >= v.imp;
                 const cumpleMaq = (actual.maqVol >= v.maqVol && actual.maqImp >= v.maqImp);
-                const cumpleTodo = (cumpleVol && cumpleImp);
-
-                // Premios
-                let premio = 0;
-                if(cumpleVol) premio += 120000;
-                if(cumpleImp) premio += 80000;
-                if(cumpleMaq) premio += 80000;
-                if(cumpleTodo) premio += 30000;
+                
+                let premio = (cumpleVol ? 120000 : 0) + (cumpleImp ? 80000 : 0) + (cumpleMaq ? 80000 : 0) + (cumpleVol && cumpleImp ? 30000 : 0);
 
                 container.innerHTML += `
                     <div class="bg-white rounded-3xl p-5 shadow-md border border-slate-200 card-vendedor">
                         <div class="flex justify-between items-start mb-4">
-                            <h4 class="font-black text-slate-800 uppercase text-sm">${v.nombre}</h4>
-                            <span class="text-[10px] font-black text-green-600 bg-green-50 px-2 py-1 rounded-lg">
+                            <div>
+                                <h4 class="font-black text-slate-800 uppercase text-sm">${v.nombre}</h4>
+                                <p class="text-[9px] text-blue-600 font-bold uppercase">Caucasia - Corbeta</p>
+                            </div>
+                            <span class="text-[11px] font-black text-green-700 bg-green-100 px-3 py-1 rounded-full">
                                 $${premio.toLocaleString()}
                             </span>
                         </div>
                         
                         <div class="space-y-4">
                             <div>
-                                <div class="flex justify-between text-[10px] font-bold mb-1">
-                                    <span class="text-slate-400">VOLUMEN ($)</span>
-                                    <span class="${cumpleVol ? 'text-green-500' : 'text-slate-400'}">${((actual.vol/v.vol)*100).toFixed(1)}%</span>
+                                <div class="flex justify-between text-[10px] font-black mb-1">
+                                    <span class="text-slate-500 uppercase">Volumen Real ($)</span>
+                                    <span class="${cumpleVol ? 'text-green-600' : 'text-slate-400'}">${pVol}%</span>
                                 </div>
                                 <input type="number" onchange="saveVend('${v.nombre}', 'vol', this.value)" value="${actual.vol}" 
-                                    class="w-full bg-slate-50 rounded-lg p-2 font-bold text-blue-600 outline-none">
+                                    class="w-full bg-slate-50 rounded-xl p-3 font-black text-blue-700 outline-none border-2 border-transparent focus:border-blue-200 transition-all">
+                                <p class="text-[9px] text-slate-400 font-bold mt-1 uppercase italic">CUOTA: $${v.vol.toLocaleString()}</p>
                             </div>
 
                             <div>
-                                <div class="flex justify-between text-[10px] font-bold mb-1">
-                                    <span class="text-slate-400">IMPACTOS</span>
-                                    <span class="${cumpleImp ? 'text-green-500' : 'text-slate-400'}">${actual.imp} / ${v.imp}</span>
+                                <div class="flex justify-between text-[10px] font-black mb-1">
+                                    <span class="text-slate-500 uppercase">Impactos</span>
+                                    <span class="${cumpleImp ? 'text-green-600' : 'text-slate-400'}">${actual.imp} / ${v.imp}</span>
                                 </div>
                                 <input type="number" onchange="saveVend('${v.nombre}', 'imp', this.value)" value="${actual.imp}" 
-                                    class="w-full bg-slate-50 rounded-lg p-2 font-bold text-blue-600 outline-none">
+                                    class="w-full bg-slate-50 rounded-xl p-3 font-black text-blue-700 outline-none border-2 border-transparent focus:border-blue-200 transition-all">
+                                <p class="text-[9px] text-slate-400 font-bold mt-1 uppercase italic">CUOTA: ${v.imp} IMPACTOS</p>
                             </div>
 
-                            <div class="p-3 bg-blue-50 rounded-xl border border-blue-100">
-                                <p class="text-[9px] font-black text-blue-800 mb-2 uppercase italic">Categoría Máquinas</p>
+                            <div class="p-3 bg-blue-50 rounded-2xl border border-blue-100">
+                                <p class="text-[9px] font-black text-blue-800 mb-2 uppercase italic flex items-center">
+                                    <i class="fas fa-cog mr-1"></i> Marca Máquinas (Cuota: $${v.maqVol.toLocaleString()})
+                                </p>
                                 <div class="grid grid-cols-2 gap-2">
-                                    <input type="number" placeholder="Venta $" onchange="saveVend('${v.nombre}', 'maqVol', this.value)" value="${actual.maqVol}" 
-                                        class="text-xs p-2 rounded-md border-none font-bold">
-                                    <input type="number" placeholder="Imp" onchange="saveVend('${v.nombre}', 'maqImp', this.value)" value="${actual.maqImp}" 
-                                        class="text-xs p-2 rounded-md border-none font-bold">
+                                    <div class="flex flex-col">
+                                        <span class="text-[8px] text-slate-400 font-bold ml-1">VENTA $</span>
+                                        <input type="number" onchange="saveVend('${v.nombre}', 'maqVol', this.value)" value="${actual.maqVol}" 
+                                            class="text-xs p-2 rounded-lg border-none font-bold bg-white shadow-sm">
+                                    </div>
+                                    <div class="flex flex-col">
+                                        <span class="text-[8px] text-slate-400 font-bold ml-1">IMP (Mín 25)</span>
+                                        <input type="number" onchange="saveVend('${v.nombre}', 'maqImp', this.value)" value="${actual.maqImp}" 
+                                            class="text-xs p-2 rounded-lg border-none font-bold bg-white shadow-sm">
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -205,22 +204,13 @@
         function calcularSup() {
             let bono = 0;
             const s = data.sup;
-
-            // Volumen
-            const vOk = s.vol >= CONFIG.metasSup.volumen;
-            if(vOk) bono += 180000;
+            const vOk = s.vol >= CONFIG.metasSup.volumen; if(vOk) bono += 180000;
+            const iOk = s.imp >= (CONFIG.metasSup.impactos * 0.95); if(iOk) bono += 120000;
+            const mOk = s.maq >= CONFIG.metasSup.maquinas; if(mOk) bono += 100000;
+            
             updateStatus('status-vol-sup', vOk, ((s.vol/CONFIG.metasSup.volumen)*100).toFixed(1));
-
-            // Impactos (95%)
-            const iOk = s.imp >= (CONFIG.metasSup.impactos * 0.95);
-            if(iOk) bono += 120000;
             updateStatus('status-imp-sup', iOk, ((s.imp/CONFIG.metasSup.impactos)*100).toFixed(1));
-
-            // Máquinas
-            const mOk = s.maq >= CONFIG.metasSup.maquinas;
-            if(mOk) bono += 100000;
             updateStatus('status-maq-sup', mOk, ((s.maq/CONFIG.metasSup.maquinas)*100).toFixed(1));
-
             document.getElementById('total-bono-sup').innerText = `$${bono.toLocaleString()}`;
         }
 
@@ -233,9 +223,7 @@
 
         function updateTime() {
             document.getElementById('fecha-actual').innerText = new Date().toLocaleString('es-CO', { 
-                timeZone: 'America/Bogota', 
-                dateStyle: 'long', 
-                timeStyle: 'medium' 
+                timeZone: 'America/Bogota', dateStyle: 'long', timeStyle: 'medium' 
             });
         }
 
@@ -248,16 +236,16 @@
                 const act = data.vend[v.nombre] || { vol: 0, imp: 0, maqVol: 0, maqImp: 0 };
                 const pVol = ((act.vol/v.vol)*100).toFixed(1);
                 const faltVol = Math.max(0, v.vol - act.vol);
+                const faltImp = Math.max(0, v.imp - act.imp);
                 
                 msg += `👤 *${v.nombre}*\n`;
                 msg += `💰 Vol: ${pVol}% (Falta: $${faltVol.toLocaleString()})\n`;
-                msg += `🎯 Imp: ${act.imp}/${v.imp}\n`;
+                msg += `🎯 Imp: ${act.imp}/${v.imp} (Falta: ${faltImp})\n`;
                 msg += `⚙️ Maq: $${act.maqVol.toLocaleString()}\n\n`;
             });
 
             msg += `--------------------------------\n`;
             msg += `_Software Vibras Positivas (3117700431)_`;
-            
             window.open(`https://wa.me/${CONFIG.whatsapp}?text=${encodeURIComponent(msg)}`, '_blank');
         }
 
@@ -268,11 +256,10 @@
                     VENDEDOR: v.nombre,
                     META_VOL: v.vol,
                     REAL_VOL: act.vol,
-                    PORC_VOL: ((act.vol/v.vol)*100).toFixed(1) + '%',
+                    AVANCE: ((act.vol/v.vol)*100).toFixed(1) + '%',
                     META_IMP: v.imp,
                     REAL_IMP: act.imp,
-                    MAQ_VOL: act.maqVol,
-                    MAQ_IMP: act.maqImp
+                    MAQ_VOL: act.maqVol
                 };
             });
             const ws = XLSX.utils.json_to_sheet(rows);
