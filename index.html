@@ -10,6 +10,7 @@
     <style>
         .card-vendedor { transition: all 0.3s ease; }
         input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        .bg-ganado { background-color: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
     </style>
 </head>
 <body class="bg-slate-100 min-h-screen font-sans pb-24">
@@ -46,27 +47,33 @@
             
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                    <p class="text-xs font-bold text-slate-500 uppercase mb-2">Volumen Global ($)</p>
-                    <input type="number" id="real-vol-sup" onchange="saveSup()" class="text-2xl font-black text-blue-700 bg-transparent w-full outline-none" value="0">
-                    <p class="text-[10px] text-slate-400 font-bold mt-1 uppercase">Meta: $85.000.000</p>
-                    <div id="status-vol-sup" class="mt-2 text-[10px] font-black px-2 py-1 rounded-full inline-block"></div>
+                    <p class="text-xs font-bold text-slate-500 uppercase mb-2 text-center">Volumen Global ($)</p>
+                    <input type="number" id="real-vol-sup" onchange="saveSup()" class="text-2xl font-black text-blue-700 bg-transparent w-full outline-none text-center" value="0">
+                    <p class="text-[10px] text-slate-400 font-bold mt-1 uppercase text-center">Meta: $85.000.000 (Premio: $180k)</p>
+                    <div class="flex justify-center mt-2">
+                        <div id="status-vol-sup" class="text-[10px] font-black px-2 py-1 rounded-full inline-block"></div>
+                    </div>
                 </div>
                 <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                    <p class="text-xs font-bold text-slate-500 uppercase mb-2">Impactos Totales</p>
-                    <input type="number" id="real-imp-sup" onchange="saveSup()" class="text-2xl font-black text-blue-700 bg-transparent w-full outline-none" value="0">
-                    <p class="text-[10px] text-slate-400 font-bold mt-1 uppercase">Meta: 520 (Min 95%)</p>
-                    <div id="status-imp-sup" class="mt-2 text-[10px] font-black px-2 py-1 rounded-full inline-block"></div>
+                    <p class="text-xs font-bold text-slate-500 uppercase mb-2 text-center">Impactos Totales</p>
+                    <input type="number" id="real-imp-sup" onchange="saveSup()" class="text-2xl font-black text-blue-700 bg-transparent w-full outline-none text-center" value="0">
+                    <p class="text-[10px] text-slate-400 font-bold mt-1 uppercase text-center">Meta: 520 (Min 95% para $120k)</p>
+                    <div class="flex justify-center mt-2">
+                        <div id="status-imp-sup" class="text-[10px] font-black px-2 py-1 rounded-full inline-block"></div>
+                    </div>
                 </div>
                 <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                    <p class="text-xs font-bold text-slate-500 uppercase mb-2">Marca Máquinas ($)</p>
-                    <input type="number" id="real-maq-sup" onchange="saveSup()" class="text-2xl font-black text-blue-700 bg-transparent w-full outline-none" value="0">
-                    <p class="text-[10px] text-slate-400 font-bold mt-1 uppercase">Meta: $47.500.000</p>
-                    <div id="status-maq-sup" class="mt-2 text-[10px] font-black px-2 py-1 rounded-full inline-block"></div>
+                    <p class="text-xs font-bold text-slate-500 uppercase mb-2 text-center">Marca Máquinas ($)</p>
+                    <input type="number" id="real-maq-sup" onchange="saveSup()" class="text-2xl font-black text-blue-700 bg-transparent w-full outline-none text-center" value="0">
+                    <p class="text-[10px] text-slate-400 font-bold mt-1 uppercase text-center">Meta: $47.500.000 (Premio: $100k)</p>
+                    <div class="flex justify-center mt-2">
+                        <div id="status-maq-sup" class="text-[10px] font-black px-2 py-1 rounded-full inline-block"></div>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <h3 class="text-slate-600 font-black uppercase tracking-widest text-sm mb-4 ml-2 italic">Fuerza de Ventas - Cuotas y Avances</h3>
+        <h3 class="text-slate-600 font-black uppercase tracking-widest text-sm mb-4 ml-2 italic">Fuerza de Ventas - Incentivos Ganados en Tiempo Real</h3>
         <div id="contenedor-vendedores" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"></div>
 
         <div class="fixed bottom-24 right-6 flex flex-col space-y-4">
@@ -120,14 +127,20 @@
             container.innerHTML = '';
 
             CONFIG.vendedores.forEach(v => {
-                const actual = data.vend[v.nombre] || { vol: 0, imp: 0, maqVol: 0, maqImp: 0 };
-                const pVol = ((actual.vol / v.vol) * 100).toFixed(1);
+                const act = data.vend[v.nombre] || { vol: 0, imp: 0, maqVol: 0, maqImp: 0 };
+                const pVol = ((act.vol / v.vol) * 100).toFixed(1);
                 
-                const cumpleVol = actual.vol >= v.vol;
-                const cumpleImp = actual.imp >= v.imp;
-                const cumpleMaq = (actual.maqVol >= v.maqVol && actual.maqImp >= v.maqImp);
-                
-                let premio = (cumpleVol ? 120000 : 0) + (cumpleImp ? 80000 : 0) + (cumpleMaq ? 80000 : 0) + (cumpleVol && cumpleImp ? 30000 : 0);
+                // VALIDACIÓN DE PREMIOS
+                const ganoVol = act.vol >= v.vol;
+                const ganoImp = act.imp >= v.imp;
+                const ganoMaq = (act.maqVol >= v.maqVol && act.maqImp >= v.maqImp);
+                const ganoExtra = (ganoVol && ganoImp);
+
+                let totalGanado = 0;
+                if(ganoVol) totalGanado += 120000;
+                if(ganoImp) totalGanado += 80000;
+                if(ganoMaq) totalGanado += 80000;
+                if(ganoExtra) totalGanado += 30000;
 
                 container.innerHTML += `
                     <div class="bg-white rounded-3xl p-5 shadow-md border border-slate-200 card-vendedor">
@@ -136,45 +149,49 @@
                                 <h4 class="font-black text-slate-800 uppercase text-sm">${v.nombre}</h4>
                                 <p class="text-[9px] text-blue-600 font-bold uppercase">Caucasia - Corbeta</p>
                             </div>
-                            <span class="text-[11px] font-black text-green-700 bg-green-100 px-3 py-1 rounded-full">
-                                $${premio.toLocaleString()}
-                            </span>
+                            <div class="text-right">
+                                <span class="text-[8px] font-black text-slate-400 block uppercase mb-1">Incentivo Ganado</span>
+                                <span class="text-[14px] font-black px-3 py-1 rounded-lg ${totalGanado > 0 ? 'bg-ganado' : 'bg-slate-100 text-slate-400'}">
+                                    $${totalGanado.toLocaleString('es-CO')}
+                                </span>
+                            </div>
                         </div>
                         
                         <div class="space-y-4">
                             <div>
                                 <div class="flex justify-between text-[10px] font-black mb-1">
-                                    <span class="text-slate-500 uppercase">Volumen Real ($)</span>
-                                    <span class="${cumpleVol ? 'text-green-600' : 'text-slate-400'}">${pVol}%</span>
+                                    <span class="text-slate-500 uppercase">Venta Volumen ($)</span>
+                                    <span class="${ganoVol ? 'text-green-600' : 'text-slate-400'}">${pVol}% ${ganoVol ? '✅' : ''}</span>
                                 </div>
-                                <input type="number" onchange="saveVend('${v.nombre}', 'vol', this.value)" value="${actual.vol}" 
+                                <input type="number" onchange="saveVend('${v.nombre}', 'vol', this.value)" value="${act.vol}" 
                                     class="w-full bg-slate-50 rounded-xl p-3 font-black text-blue-700 outline-none border-2 border-transparent focus:border-blue-200 transition-all">
-                                <p class="text-[9px] text-slate-400 font-bold mt-1 uppercase italic">CUOTA: $${v.vol.toLocaleString()}</p>
+                                <p class="text-[9px] text-slate-400 font-bold mt-1 uppercase italic">Meta: $${v.vol.toLocaleString()}</p>
                             </div>
 
                             <div>
                                 <div class="flex justify-between text-[10px] font-black mb-1">
-                                    <span class="text-slate-500 uppercase">Impactos</span>
-                                    <span class="${cumpleImp ? 'text-green-600' : 'text-slate-400'}">${actual.imp} / ${v.imp}</span>
+                                    <span class="text-slate-500 uppercase">Impactos Reales</span>
+                                    <span class="${ganoImp ? 'text-green-600' : 'text-slate-400'}">${act.imp} / ${v.imp} ${ganoImp ? '✅' : ''}</span>
                                 </div>
-                                <input type="number" onchange="saveVend('${v.nombre}', 'imp', this.value)" value="${actual.imp}" 
+                                <input type="number" onchange="saveVend('${v.nombre}', 'imp', this.value)" value="${act.imp}" 
                                     class="w-full bg-slate-50 rounded-xl p-3 font-black text-blue-700 outline-none border-2 border-transparent focus:border-blue-200 transition-all">
-                                <p class="text-[9px] text-slate-400 font-bold mt-1 uppercase italic">CUOTA: ${v.imp} IMPACTOS</p>
+                                <p class="text-[9px] text-slate-400 font-bold mt-1 uppercase italic">Meta: ${v.imp} Impactos</p>
                             </div>
 
                             <div class="p-3 bg-blue-50 rounded-2xl border border-blue-100">
-                                <p class="text-[9px] font-black text-blue-800 mb-2 uppercase italic flex items-center">
-                                    <i class="fas fa-cog mr-1"></i> Marca Máquinas (Cuota: $${v.maqVol.toLocaleString()})
+                                <p class="text-[9px] font-black text-blue-800 mb-2 uppercase italic flex justify-between">
+                                    <span><i class="fas fa-cog mr-1"></i> MARCA MÁQUINAS ${ganoMaq ? '✅' : ''}</span>
+                                    <span class="text-blue-500">$${v.maqVol.toLocaleString()}</span>
                                 </p>
                                 <div class="grid grid-cols-2 gap-2">
                                     <div class="flex flex-col">
-                                        <span class="text-[8px] text-slate-400 font-bold ml-1">VENTA $</span>
-                                        <input type="number" onchange="saveVend('${v.nombre}', 'maqVol', this.value)" value="${actual.maqVol}" 
+                                        <span class="text-[8px] text-slate-400 font-bold ml-1 uppercase">Venta $</span>
+                                        <input type="number" onchange="saveVend('${v.nombre}', 'maqVol', this.value)" value="${act.maqVol}" 
                                             class="text-xs p-2 rounded-lg border-none font-bold bg-white shadow-sm">
                                     </div>
                                     <div class="flex flex-col">
-                                        <span class="text-[8px] text-slate-400 font-bold ml-1">IMP (Mín 25)</span>
-                                        <input type="number" onchange="saveVend('${v.nombre}', 'maqImp', this.value)" value="${actual.maqImp}" 
+                                        <span class="text-[8px] text-slate-400 font-bold ml-1 uppercase">Impacto (Min 25)</span>
+                                        <input type="number" onchange="saveVend('${v.nombre}', 'maqImp', this.value)" value="${act.maqImp}" 
                                             class="text-xs p-2 rounded-lg border-none font-bold bg-white shadow-sm">
                                     </div>
                                 </div>
@@ -211,12 +228,12 @@
             updateStatus('status-vol-sup', vOk, ((s.vol/CONFIG.metasSup.volumen)*100).toFixed(1));
             updateStatus('status-imp-sup', iOk, ((s.imp/CONFIG.metasSup.impactos)*100).toFixed(1));
             updateStatus('status-maq-sup', mOk, ((s.maq/CONFIG.metasSup.maquinas)*100).toFixed(1));
-            document.getElementById('total-bono-sup').innerText = `$${bono.toLocaleString()}`;
+            document.getElementById('total-bono-sup').innerText = `$${bono.toLocaleString('es-CO')}`;
         }
 
         function updateStatus(id, ok, pct) {
             const el = document.getElementById(id);
-            el.innerText = ok ? `CUMPLIDO (${pct}%)` : `PENDIENTE (${pct}%)`;
+            el.innerText = ok ? `CUMPLIDO (${pct}%) ✅` : `PENDIENTE (${pct}%) ⏳`;
             el.className = ok ? 'mt-2 text-[10px] font-black px-2 py-1 rounded-full inline-block bg-green-100 text-green-700' 
                               : 'mt-2 text-[10px] font-black px-2 py-1 rounded-full inline-block bg-red-50 text-red-500';
         }
@@ -228,23 +245,27 @@
         }
 
         function enviarWhatsApp() {
+            let totalGeneralPagar = 0;
             let msg = `*REPORTE CHAMPIONS - CORBETA*\n`;
             msg += `📅 ${new Date().toLocaleString()}\n`;
             msg += `--------------------------------\n\n`;
 
             CONFIG.vendedores.forEach(v => {
                 const act = data.vend[v.nombre] || { vol: 0, imp: 0, maqVol: 0, maqImp: 0 };
-                const pVol = ((act.vol/v.vol)*100).toFixed(1);
-                const faltVol = Math.max(0, v.vol - act.vol);
-                const faltImp = Math.max(0, v.imp - act.imp);
+                const ganoVol = act.vol >= v.vol;
+                const ganoImp = act.imp >= v.imp;
+                const ganoMaq = (act.maqVol >= v.maqVol && act.maqImp >= v.maqImp);
                 
+                let premio = (ganoVol ? 120000 : 0) + (ganoImp ? 80000 : 0) + (ganoMaq ? 80000 : 0) + (ganoVol && ganoImp ? 30000 : 0);
+                totalGeneralPagar += premio;
+
                 msg += `👤 *${v.nombre}*\n`;
-                msg += `💰 Vol: ${pVol}% (Falta: $${faltVol.toLocaleString()})\n`;
-                msg += `🎯 Imp: ${act.imp}/${v.imp} (Falta: ${faltImp})\n`;
-                msg += `⚙️ Maq: $${act.maqVol.toLocaleString()}\n\n`;
+                msg += `💰 Ganado: $${premio.toLocaleString('es-CO')}\n`;
+                msg += `📈 Avance: ${((act.vol/v.vol)*100).toFixed(1)}% de la meta.\n\n`;
             });
 
             msg += `--------------------------------\n`;
+            msg += `🚀 *TOTAL INCENTIVOS:* $${totalGeneralPagar.toLocaleString('es-CO')}\n`;
             msg += `_Software Vibras Positivas (3117700431)_`;
             window.open(`https://wa.me/${CONFIG.whatsapp}?text=${encodeURIComponent(msg)}`, '_blank');
         }
@@ -252,20 +273,24 @@
         function exportarExcel() {
             const rows = CONFIG.vendedores.map(v => {
                 const act = data.vend[v.nombre] || { vol: 0, imp: 0, maqVol: 0, maqImp: 0 };
+                const ganoVol = act.vol >= v.vol;
+                const ganoImp = act.imp >= v.imp;
+                const ganoMaq = (act.maqVol >= v.maqVol && act.maqImp >= v.maqImp);
+                let premio = (ganoVol ? 120000 : 0) + (ganoImp ? 80000 : 0) + (ganoMaq ? 80000 : 0) + (ganoVol && ganoImp ? 30000 : 0);
+                
                 return {
                     VENDEDOR: v.nombre,
                     META_VOL: v.vol,
                     REAL_VOL: act.vol,
-                    AVANCE: ((act.vol/v.vol)*100).toFixed(1) + '%',
                     META_IMP: v.imp,
                     REAL_IMP: act.imp,
-                    MAQ_VOL: act.maqVol
+                    INCENTIVO_GANADO: premio
                 };
             });
             const ws = XLSX.utils.json_to_sheet(rows);
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, "Champions");
-            XLSX.writeFile(wb, `Reporte_CHAMPIONS_${new Date().getTime()}.xlsx`);
+            XLSX.writeFile(wb, `Reporte_CHAMPIONS_Incentivos.xlsx`);
         }
 
         init();
