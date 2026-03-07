@@ -1,1 +1,287 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CHAMPIONS - Panel de Incentivos</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .card-vendedor { transition: all 0.3s ease; }
+        .input-meta { border-bottom: 2px solid #e2e8f0; }
+        .input-meta:focus { border-color: #3b82f6; }
+    </style>
+</head>
+<body class="bg-slate-100 min-h-screen font-sans pb-24">
 
+    <header class="bg-blue-900 shadow-lg p-4 mb-6 text-white">
+        <div class="container mx-auto flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <div class="bg-white p-2 rounded-lg">
+                    <span class="text-blue-900 font-black text-xl italic">CHAMPIONS</span>
+                </div>
+                <div>
+                    <h1 class="text-2xl font-black tracking-tighter uppercase">CORBETA</h1>
+                    <p class="text-[10px] opacity-80 uppercase tracking-widest">Plan de Incentivos</p>
+                </div>
+            </div>
+            <div class="text-right">
+                <p id="fecha-actual" class="text-xs font-medium opacity-80"></p>
+                <p class="text-sm font-bold text-yellow-400">CAUCASIA</p>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4">
+        <div class="bg-white rounded-3xl p-6 shadow-xl mb-8 border-t-4 border-blue-600">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-black text-slate-800 uppercase flex items-center">
+                    <i class="fas fa-user-tie mr-2 text-blue-600"></i> Resumen Supervisor
+                </h2>
+                <div class="text-right">
+                    <span class="text-xs font-bold text-slate-400 block uppercase">Total Incentivo Acumulado</span>
+                    <span id="total-bono-sup" class="text-3xl font-black text-green-600">$0</span>
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                    <p class="text-xs font-bold text-slate-500 uppercase mb-2">Volumen Global ($)</p>
+                    <input type="number" id="real-vol-sup" onchange="saveSup()" class="text-2xl font-black text-blue-700 bg-transparent w-full outline-none" value="0">
+                    <p class="text-[10px] text-slate-400 font-bold mt-1">META: $85.000.000 (Premio: $180k)</p>
+                    <div id="status-vol-sup" class="mt-2 text-[10px] font-black px-2 py-1 rounded-full inline-block"></div>
+                </div>
+                <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                    <p class="text-xs font-bold text-slate-500 uppercase mb-2">Impactos Totales</p>
+                    <input type="number" id="real-imp-sup" onchange="saveSup()" class="text-2xl font-black text-blue-700 bg-transparent w-full outline-none" value="0">
+                    <p class="text-[10px] text-slate-400 font-bold mt-1">META: 520 (95% para $120k)</p>
+                    <div id="status-imp-sup" class="mt-2 text-[10px] font-black px-2 py-1 rounded-full inline-block"></div>
+                </div>
+                <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                    <p class="text-xs font-bold text-slate-500 uppercase mb-2">Marca Máquinas ($)</p>
+                    <input type="number" id="real-maq-sup" onchange="saveSup()" class="text-2xl font-black text-blue-700 bg-transparent w-full outline-none" value="0">
+                    <p class="text-[10px] text-slate-400 font-bold mt-1">META: $47.500.000 (Premio: $100k)</p>
+                    <div id="status-maq-sup" class="mt-2 text-[10px] font-black px-2 py-1 rounded-full inline-block"></div>
+                </div>
+            </div>
+        </div>
+
+        <h3 class="text-slate-600 font-black uppercase tracking-widest text-sm mb-4 ml-2">Fuerza de Ventas</h3>
+        <div id="contenedor-vendedores" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"></div>
+
+        <div class="fixed bottom-24 right-6 flex flex-col space-y-4">
+            <button onclick="exportarExcel()" class="bg-white border-2 border-green-600 text-green-600 w-16 h-16 rounded-full shadow-2xl hover:scale-110 transition-transform flex items-center justify-center">
+                <i class="fas fa-file-excel text-2xl"></i>
+            </button>
+            <button onclick="enviarWhatsApp()" class="bg-green-500 text-white w-16 h-16 rounded-full shadow-2xl hover:scale-110 transition-transform flex items-center justify-center">
+                <i class="fab fa-whatsapp text-3xl"></i>
+            </button>
+        </div>
+    </main>
+
+    <footer class="fixed bottom-0 w-full bg-white border-t p-4 text-center">
+        <p class="text-gray-500 text-[10px] font-bold uppercase tracking-wider">
+            App desarrollada por <span class="text-blue-600">Vibras Positivas</span> © Derechos de Autor | <i class="fab fa-whatsapp"></i> 3117700431
+        </p>
+    </footer>
+
+    <script>
+        const CONFIG = {
+            whatsapp: "573117700431",
+            metasSup: {
+                volumen: 85000000,
+                impactos: 520,
+                maquinas: 47500000,
+                impMaq: 250
+            },
+            vendedores: [
+                { nombre: "ARGENIS", vol: 20000000, imp: 50, maqVol: 13500000, maqImp: 25 },
+                { nombre: "ROY", vol: 18000000, imp: 60, maqVol: 8000000, maqImp: 25 },
+                { nombre: "ALEX SANCHEZ", vol: 11000000, imp: 60, maqVol: 7500000, maqImp: 25 },
+                { nombre: "JUAN QUINTANA", vol: 11000000, imp: 60, maqVol: 6000000, maqImp: 25 },
+                { nombre: "DANNY", vol: 7000000, imp: 50, maqVol: 3500000, maqImp: 25 },
+                { nombre: "LORENZO", vol: 5500000, imp: 40, maqVol: 3000000, maqImp: 25 },
+                { nombre: "RUBEN MORALES", vol: 5000000, imp: 50, maqVol: 2000000, maqImp: 25 },
+                { nombre: "RUBEN AVENDAÑO", vol: 2500000, imp: 50, maqVol: 2000000, maqImp: 25 },
+                { nombre: "JUAN ZABALA", vol: 2500000, imp: 50, maqVol: 1000000, maqImp: 25 },
+                { nombre: "ROBERT", vol: 2500000, imp: 50, maqVol: 1000000, maqImp: 25 }
+            ]
+        };
+
+        let data = JSON.parse(localStorage.getItem('champions_data')) || { sup: {}, vend: {} };
+
+        function init() {
+            render();
+            updateTime();
+            setInterval(updateTime, 1000);
+            
+            // Cargar datos supervisor
+            document.getElementById('real-vol-sup').value = data.sup.vol || 0;
+            document.getElementById('real-imp-sup').value = data.sup.imp || 0;
+            document.getElementById('real-maq-sup').value = data.sup.maq || 0;
+            calcularSup();
+        }
+
+        function render() {
+            const container = document.getElementById('contenedor-vendedores');
+            container.innerHTML = '';
+
+            CONFIG.vendedores.forEach(v => {
+                const actual = data.vend[v.nombre] || { vol: 0, imp: 0, maqVol: 0, maqImp: 0 };
+                
+                // Cálculos de cumplimiento
+                const cumpleVol = actual.vol >= v.vol;
+                const cumpleImp = actual.imp >= v.imp;
+                const cumpleMaq = (actual.maqVol >= v.maqVol && actual.maqImp >= v.maqImp);
+                const cumpleTodo = (cumpleVol && cumpleImp);
+
+                // Premios
+                let premio = 0;
+                if(cumpleVol) premio += 120000;
+                if(cumpleImp) premio += 80000;
+                if(cumpleMaq) premio += 80000;
+                if(cumpleTodo) premio += 30000;
+
+                container.innerHTML += `
+                    <div class="bg-white rounded-3xl p-5 shadow-md border border-slate-200 card-vendedor">
+                        <div class="flex justify-between items-start mb-4">
+                            <h4 class="font-black text-slate-800 uppercase text-sm">${v.nombre}</h4>
+                            <span class="text-[10px] font-black text-green-600 bg-green-50 px-2 py-1 rounded-lg">
+                                $${premio.toLocaleString()}
+                            </span>
+                        </div>
+                        
+                        <div class="space-y-4">
+                            <div>
+                                <div class="flex justify-between text-[10px] font-bold mb-1">
+                                    <span class="text-slate-400">VOLUMEN ($)</span>
+                                    <span class="${cumpleVol ? 'text-green-500' : 'text-slate-400'}">${((actual.vol/v.vol)*100).toFixed(1)}%</span>
+                                </div>
+                                <input type="number" onchange="saveVend('${v.nombre}', 'vol', this.value)" value="${actual.vol}" 
+                                    class="w-full bg-slate-50 rounded-lg p-2 font-bold text-blue-600 outline-none">
+                            </div>
+
+                            <div>
+                                <div class="flex justify-between text-[10px] font-bold mb-1">
+                                    <span class="text-slate-400">IMPACTOS</span>
+                                    <span class="${cumpleImp ? 'text-green-500' : 'text-slate-400'}">${actual.imp} / ${v.imp}</span>
+                                </div>
+                                <input type="number" onchange="saveVend('${v.nombre}', 'imp', this.value)" value="${actual.imp}" 
+                                    class="w-full bg-slate-50 rounded-lg p-2 font-bold text-blue-600 outline-none">
+                            </div>
+
+                            <div class="p-3 bg-blue-50 rounded-xl border border-blue-100">
+                                <p class="text-[9px] font-black text-blue-800 mb-2 uppercase italic">Categoría Máquinas</p>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <input type="number" placeholder="Venta $" onchange="saveVend('${v.nombre}', 'maqVol', this.value)" value="${actual.maqVol}" 
+                                        class="text-xs p-2 rounded-md border-none font-bold">
+                                    <input type="number" placeholder="Imp" onchange="saveVend('${v.nombre}', 'maqImp', this.value)" value="${actual.maqImp}" 
+                                        class="text-xs p-2 rounded-md border-none font-bold">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            calcularSup();
+        }
+
+        function saveVend(nombre, campo, valor) {
+            if (!data.vend[nombre]) data.vend[nombre] = { vol: 0, imp: 0, maqVol: 0, maqImp: 0 };
+            data.vend[nombre][campo] = parseInt(valor) || 0;
+            localStorage.setItem('champions_data', JSON.stringify(data));
+            render();
+        }
+
+        function saveSup() {
+            data.sup.vol = parseInt(document.getElementById('real-vol-sup').value) || 0;
+            data.sup.imp = parseInt(document.getElementById('real-imp-sup').value) || 0;
+            data.sup.maq = parseInt(document.getElementById('real-maq-sup').value) || 0;
+            localStorage.setItem('champions_data', JSON.stringify(data));
+            calcularSup();
+        }
+
+        function calcularSup() {
+            let bono = 0;
+            const s = data.sup;
+
+            // Volumen
+            const vOk = s.vol >= CONFIG.metasSup.volumen;
+            if(vOk) bono += 180000;
+            updateStatus('status-vol-sup', vOk, ((s.vol/CONFIG.metasSup.volumen)*100).toFixed(1));
+
+            // Impactos (95%)
+            const iOk = s.imp >= (CONFIG.metasSup.impactos * 0.95);
+            if(iOk) bono += 120000;
+            updateStatus('status-imp-sup', iOk, ((s.imp/CONFIG.metasSup.impactos)*100).toFixed(1));
+
+            // Máquinas
+            const mOk = s.maq >= CONFIG.metasSup.maquinas;
+            if(mOk) bono += 100000;
+            updateStatus('status-maq-sup', mOk, ((s.maq/CONFIG.metasSup.maquinas)*100).toFixed(1));
+
+            document.getElementById('total-bono-sup').innerText = `$${bono.toLocaleString()}`;
+        }
+
+        function updateStatus(id, ok, pct) {
+            const el = document.getElementById(id);
+            el.innerText = ok ? `CUMPLIDO (${pct}%)` : `PENDIENTE (${pct}%)`;
+            el.className = ok ? 'mt-2 text-[10px] font-black px-2 py-1 rounded-full inline-block bg-green-100 text-green-700' 
+                              : 'mt-2 text-[10px] font-black px-2 py-1 rounded-full inline-block bg-red-50 text-red-500';
+        }
+
+        function updateTime() {
+            document.getElementById('fecha-actual').innerText = new Date().toLocaleString('es-CO', { 
+                timeZone: 'America/Bogota', 
+                dateStyle: 'long', 
+                timeStyle: 'medium' 
+            });
+        }
+
+        function enviarWhatsApp() {
+            let msg = `*REPORTE CHAMPIONS - CORBETA*\n`;
+            msg += `📅 ${new Date().toLocaleString()}\n`;
+            msg += `--------------------------------\n\n`;
+
+            CONFIG.vendedores.forEach(v => {
+                const act = data.vend[v.nombre] || { vol: 0, imp: 0, maqVol: 0, maqImp: 0 };
+                const pVol = ((act.vol/v.vol)*100).toFixed(1);
+                const faltVol = Math.max(0, v.vol - act.vol);
+                
+                msg += `👤 *${v.nombre}*\n`;
+                msg += `💰 Vol: ${pVol}% (Falta: $${faltVol.toLocaleString()})\n`;
+                msg += `🎯 Imp: ${act.imp}/${v.imp}\n`;
+                msg += `⚙️ Maq: $${act.maqVol.toLocaleString()}\n\n`;
+            });
+
+            msg += `--------------------------------\n`;
+            msg += `_Software Vibras Positivas (3117700431)_`;
+            
+            window.open(`https://wa.me/${CONFIG.whatsapp}?text=${encodeURIComponent(msg)}`, '_blank');
+        }
+
+        function exportarExcel() {
+            const rows = CONFIG.vendedores.map(v => {
+                const act = data.vend[v.nombre] || { vol: 0, imp: 0, maqVol: 0, maqImp: 0 };
+                return {
+                    VENDEDOR: v.nombre,
+                    META_VOL: v.vol,
+                    REAL_VOL: act.vol,
+                    PORC_VOL: ((act.vol/v.vol)*100).toFixed(1) + '%',
+                    META_IMP: v.imp,
+                    REAL_IMP: act.imp,
+                    MAQ_VOL: act.maqVol,
+                    MAQ_IMP: act.maqImp
+                };
+            });
+            const ws = XLSX.utils.json_to_sheet(rows);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Champions");
+            XLSX.writeFile(wb, `Reporte_CHAMPIONS_${new Date().getTime()}.xlsx`);
+        }
+
+        init();
+    </script>
+</body>
+</html>
