@@ -231,7 +231,8 @@
                 msg += `💰 *GANADO:* $${premio.toLocaleString('es-CO')}\n`;
                 msg += `📊 *Volumen:* ${pctVol}% ($${act.vol.toLocaleString('es-CO')} / $${v.vol.toLocaleString('es-CO')})\n`;
                 msg += `🎯 *Impactos:* ${act.imp} / ${v.imp}\n`;
-                msg += `⚙️ *Maq:* ${pctMaq}% ($${act.maqVol.toLocaleString('es-CO')} / $${v.maqVol.toLocaleString('es-CO')})\n\n`;
+                msg += `⚙️ *Marca Maq:* ${pctMaq}% ($${act.maqVol.toLocaleString('es-CO')} / $${v.maqVol.toLocaleString('es-CO')})\n`;
+                msg += `📉 *Imp. Maq:* ${act.maqImp} / ${v.maqImp}\n\n`;
             });
 
             msg += `--------------------------------\n`;
