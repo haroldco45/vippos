@@ -224,11 +224,14 @@
                 let premio = (ganoVol ? 120000 : 0) + (ganoImp ? 80000 : 0) + (ganoMaq ? 80000 : 0) + (ganoVol && ganoImp ? 30000 : 0);
                 totalGeneralPagar += premio;
 
+                const pctVol = ((act.vol/v.vol)*100).toFixed(1);
+                const pctMaq = v.maqVol > 0 ? ((act.maqVol/v.maqVol)*100).toFixed(1) : "0.0";
+
                 msg += `👤 *${v.nombre}*\n`;
                 msg += `💰 *GANADO:* $${premio.toLocaleString('es-CO')}\n`;
-                msg += `📈 Volumen: ${((act.vol/v.vol)*100).toFixed(1)}%\n`;
-                msg += `🎯 Impactos: ${act.imp}/${v.imp}\n`;
-                msg += `⚙️ Maq: $${act.maqVol.toLocaleString()} / Cuota: $${v.maqVol.toLocaleString()}\n\n`;
+                msg += `📊 *Volumen:* ${pctVol}% ($${act.vol.toLocaleString('es-CO')} / $${v.vol.toLocaleString('es-CO')})\n`;
+                msg += `🎯 *Impactos:* ${act.imp} / ${v.imp}\n`;
+                msg += `⚙️ *Maq:* ${pctMaq}% ($${act.maqVol.toLocaleString('es-CO')} / $${v.maqVol.toLocaleString('es-CO')})\n\n`;
             });
 
             msg += `--------------------------------\n`;
